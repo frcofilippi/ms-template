@@ -1,8 +1,7 @@
-package handlers
+package product
 
 import (
 	"encoding/json"
-	"frcofilippi/pedimeapp/internal/application/services"
 	"log"
 	"net/http"
 	"strconv"
@@ -12,7 +11,7 @@ import (
 )
 
 type ProductRouter struct {
-	productService services.ProductService
+	productService ProductService
 }
 
 func (ph *ProductRouter) HandleGetProduct(w http.ResponseWriter, r *http.Request) {
@@ -33,7 +32,7 @@ func (ph *ProductRouter) HandleGetProduct(w http.ResponseWriter, r *http.Request
 
 	//TODO: Parse the customerid from the jsonweb token
 
-	command := &services.GetProductByIdCommand{
+	command := &GetProductByIdCommand{
 		ProductId:  id,
 		CustomerId: 2,
 	}
@@ -66,7 +65,7 @@ func (ph *ProductRouter) HandleCreateProduct(w http.ResponseWriter, r *http.Requ
 
 	log.Default().Printf("[%s] With values: %v \n", requestId, request)
 
-	command := &services.CreateNewProductCommand{
+	command := &CreateNewProductCommand{
 		Name:       request.Name,
 		Cost:       request.Cost,
 		CustomerId: 1,
@@ -92,7 +91,7 @@ func (ph *ProductRouter) Routes() http.Handler {
 	return router
 }
 
-func NewProductRouter(service services.ProductService) *ProductRouter {
+func NewProductRouter(service ProductService) *ProductRouter {
 	return &ProductRouter{
 		productService: service,
 	}

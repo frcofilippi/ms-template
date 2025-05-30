@@ -1,21 +1,10 @@
-package repositories
+package product
 
 import (
 	"context"
 	"database/sql"
 	"fmt"
-	"frcofilippi/pedimeapp/internal/business"
 )
-
-type WithCustomerProductRepository struct {
-	innerRepo *PgProductRepository
-	db        *sql.DB
-}
-
-type DBExecutor interface {
-	ExecContext(context.Context, string, ...interface{}) (sql.Result, error)
-	QueryRowContext(context.Context, string, ...interface{}) *sql.Row
-}
 
 func withCustomerContext(ctx context.Context, db *sql.DB, customerId int64, fn func(exec DBExecutor) error) error {
 	tx, err := db.BeginTx(ctx, nil)
@@ -53,8 +42,8 @@ func withCustomerContext(ctx context.Context, db *sql.DB, customerId int64, fn f
 	return tx.Commit()
 }
 
-func (crp *WithCustomerProductRepository) GetById(ctx context.Context, id, customerId int64) (*business.Product, error) {
-	var product *business.Product
+func (crp *WithCustomerProductRepository) GetById(ctx context.Context, id, customerId int64) (*Product, error) {
+	var product *Product
 	err := withCustomerContext(ctx, crp.db, customerId, func(exec DBExecutor) error {
 		var err error
 		product, err = crp.innerRepo.GetById(ctx, exec, id, customerId)
@@ -66,7 +55,7 @@ func (crp *WithCustomerProductRepository) GetById(ctx context.Context, id, custo
 	return product, nil
 }
 
-func (crp *WithCustomerProductRepository) Create(ctx context.Context, product *business.Product) (int64, error) {
+func (crp *WithCustomerProductRepository) Create(ctx context.Context, product *Product) (int64, error) {
 	var id int64
 	err := withCustomerContext(ctx, crp.db, product.CustomerId, func(exec DBExecutor) error {
 		var err error

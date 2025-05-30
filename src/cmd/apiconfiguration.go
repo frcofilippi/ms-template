@@ -6,8 +6,9 @@ import (
 )
 
 type ApiConfiguration struct {
-	port     string
-	dbconfig *DatabaseConfiguration
+	port           string
+	dbconfig       *DatabaseConfiguration
+	rabbitmqconfig *RabbitMQConfiguration
 }
 
 func readEnvValueAsString(key, fallback string) string {
@@ -32,7 +33,8 @@ func readEnvValueAsInt(key string, fallback int) int {
 
 func NewApiConfiguration() *ApiConfiguration {
 	return &ApiConfiguration{
-		port:     readEnvValueAsString("APP_PORT", ":8080"),
-		dbconfig: NewDatabaseConfig(),
+		port:           readEnvValueAsString("APP_PORT", ":2020"),
+		dbconfig:       NewDatabaseConfig(),
+		rabbitmqconfig: NewRabbitMQConfig(),
 	}
 }

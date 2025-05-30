@@ -21,6 +21,8 @@ func (app *Application) Mount() *chi.Mux {
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.RealIP)
 	mux.Use(middleware.Logger)
+	mux.Use(middleware.Recoverer)
+
 	mux.Use(cors.Handler(cors.Options{
 		AllowedOrigins:   []string{"*"},
 		AllowedMethods:   []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
@@ -29,6 +31,7 @@ func (app *Application) Mount() *chi.Mux {
 		AllowCredentials: false,
 		MaxAge:           300,
 	}))
+
 	mux.Mount("/api/v1/product", app.productRouter.Routes())
 	return mux
 }

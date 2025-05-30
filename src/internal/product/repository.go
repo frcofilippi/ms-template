@@ -1,9 +1,9 @@
-package repositories
+package product
 
 import (
 	"context"
 	"database/sql"
-	"frcofilippi/pedimeapp/internal/business"
+	"encoding/json"
 	"time"
 
 	_ "github.com/lib/pq"
@@ -13,7 +13,7 @@ type PgProductRepository struct {
 	db *sql.DB
 }
 
-func (pr *PgProductRepository) GetById(ctx context.Context, exec DBExecutor, id, customerId int64) (*business.Product, error) {
+func (pr *PgProductRepository) GetById(ctx context.Context, exec DBExecutor, id, customerId int64) (*Product, error) {
 	query := `SELECT * FROM products p WHERE p.id = $1;`
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*4)
@@ -21,7 +21,7 @@ func (pr *PgProductRepository) GetById(ctx context.Context, exec DBExecutor, id,
 
 	row := exec.QueryRowContext(ctx, query, id)
 
-	var product business.Product
+	var product Product
 
 	err := row.Scan(&product.Id, &product.CustomerId, &product.Name, &product.Cost)
 
@@ -31,7 +31,7 @@ func (pr *PgProductRepository) GetById(ctx context.Context, exec DBExecutor, id,
 	return &product, nil
 }
 
-func (pr *PgProductRepository) Create(ctx context.Context, exec DBExecutor, product *business.Product) (int64, error) {
+func (pr *PgProductRepository) Create(ctx context.Context, exec DBExecutor, product *Product) (int64, error) {
 	query := "INSERT INTO products (customer_id, name, cost) VALUES ($1, $2, $3) RETURNING id"
 	row := exec.QueryRowContext(ctx, query, product.CustomerId, product.Name, product.Cost)
 	var id int64
@@ -39,6 +39,23 @@ func (pr *PgProductRepository) Create(ctx context.Context, exec DBExecutor, prod
 	if err != nil {
 		return 0, err
 	}
+
+	product.Id = id
+	for _, event := range product.PendingEvents() {
+		inserq := `INSERT INTO outbox_messages (aggregate_type, aggregate_id,event_type, payload)
+						VALUES ($1,$2,$3,$4)`
+
+		payload, _ := json.MarshalIndent(event, "", "  ")
+
+		_, err := exec.ExecContext(ctx, inserq, "Product", product.Id, event.EventType(), payload)
+
+		if err != nil {
+			return 0, err
+		}
+	}
+
+	product.CleanEvents()
+
 	return id, nil
 }
 
