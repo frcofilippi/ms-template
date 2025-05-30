@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"encoding/json"
 	"frcofilippi/pedimeapp/internal/application"
 	"frcofilippi/pedimeapp/internal/common"
 	"frcofilippi/pedimeapp/internal/events"
@@ -11,7 +10,6 @@ import (
 	"net/http"
 
 	"github.com/joho/godotenv"
-	"github.com/streadway/amqp"
 )
 
 func main() {
@@ -60,7 +58,6 @@ func main() {
 
 	obrelay.Start(context.Background())
 
-	// consummer
 	eventConsumer, err := events.NewRabbitMqConnection(
 		appConfig.rabbitmqconfig.connectionStr,
 		appConfig.rabbitmqconfig.exchangeName,
@@ -71,38 +68,29 @@ func main() {
 	}
 	defer eventConsumer.Close()
 
+	dispatcher := &application.MessageDispatcher{}
+	listener := application.NewMessageListener(eventConsumer, dispatcher)
+
+	listnerErrChan := make(chan error, 1)
 	go func() {
-		err = eventConsumer.Consume(func(delivery amqp.Delivery) {
-			log.Default().Printf("Received message: %s", delivery.Body)
-
-			var message application.OutboxMessage
-			err := json.Unmarshal(delivery.Body, &message)
-			if err != nil {
-				log.Default().Printf("Error unmarshalling event: %s", err.Error())
-				delivery.Acknowledger.Nack(delivery.DeliveryTag, false, false)
-				return
-			}
-			log.Default().Printf("Event type: %s", message.EventType)
-			var pCreated events.ProductCreatedEvent
-			err = json.Unmarshal(message.Payload, &pCreated)
-			if err != nil {
-				log.Default().Printf("Error unmarshalling event: %s", err.Error())
-				delivery.Acknowledger.Nack(delivery.DeliveryTag, false, false)
-				return
-			}
-			log.Default().Printf("Message received and parsed!! %v \n", pCreated)
-			delivery.Acknowledger.Ack(delivery.DeliveryTag, false)
-
-		})
+		err = listener.Start()
 		if err != nil {
-			log.Default().Fatalf("Error consuming messages: %s", err.Error())
+			listnerErrChan <- err
 		}
 	}()
 
-	err = server.ListenAndServe()
+	serverErrChan := make(chan error, 1)
+	go func() {
+		err = server.ListenAndServe()
+		if err != nil {
+			serverErrChan <- err
+		}
+	}()
 
-	if err != nil {
-		log.Fatalf("Error: %s", err.Error())
+	select {
+	case err := <-listnerErrChan:
+		log.Fatalf("error: %s", err.Error())
+	case err := <-serverErrChan:
+		log.Fatalf("error: %s", err.Error())
 	}
-
 }
