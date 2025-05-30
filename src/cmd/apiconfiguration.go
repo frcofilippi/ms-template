@@ -2,7 +2,6 @@ package main
 
 import (
 	"os"
-	"strconv"
 )
 
 type ApiConfiguration struct {
@@ -19,17 +18,17 @@ func readEnvValueAsString(key, fallback string) string {
 	return value
 }
 
-func readEnvValueAsInt(key string, fallback int) int {
-	value := os.Getenv(key)
-	if value == "" {
-		return fallback
-	}
-	oValue, err := strconv.Atoi(value)
-	if err != nil {
-		return fallback
-	}
-	return oValue
-}
+// func readEnvValueAsInt(key string, fallback int) int {
+// 	value := os.Getenv(key)
+// 	if value == "" {
+// 		return fallback
+// 	}
+// 	oValue, err := strconv.Atoi(value)
+// 	if err != nil {
+// 		return fallback
+// 	}
+// 	return oValue
+// }
 
 func NewApiConfiguration() *ApiConfiguration {
 	return &ApiConfiguration{
