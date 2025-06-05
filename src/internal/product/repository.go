@@ -42,12 +42,12 @@ func (pr *PgProductRepository) Create(ctx context.Context, exec DBExecutor, prod
 
 	product.Id = id
 	for _, event := range product.PendingEvents() {
-		inserq := `INSERT INTO outbox_messages (aggregate_type, aggregate_id,event_type, payload)
+		insertq := `INSERT INTO outbox_messages (aggregate_type, aggregate_id,event_type, payload)
 						VALUES ($1,$2,$3,$4)`
 
 		payload, _ := json.MarshalIndent(event, "", "  ")
 
-		_, err := exec.ExecContext(ctx, inserq, "Product", product.Id, event.EventType(), payload)
+		_, err := exec.ExecContext(ctx, insertq, "Product", product.Id, event.EventType(), payload)
 
 		if err != nil {
 			return 0, err

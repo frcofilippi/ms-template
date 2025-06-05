@@ -13,7 +13,7 @@ type RabbitMQ struct {
 	Exchange   string
 }
 
-func NewRabbitMqConnection(amqpURL, exchangeName, queueName string) (*RabbitMQ, error) {
+func NewRabbitMqConnection(amqpURL, exchangeName, mainqName, dlxName, dlqName string) (*RabbitMQ, error) {
 	conn, err := amqp.Dial(amqpURL)
 	if err != nil {
 		return nil, fmt.Errorf("failed to connect to RabbitMQ: %w", err)
@@ -41,9 +41,20 @@ func NewRabbitMqConnection(amqpURL, exchangeName, queueName string) (*RabbitMQ, 
 		return nil, fmt.Errorf("failed to declare exchange: %w", err)
 	}
 
+	//declare deadlatter exchange
+	err = ch.ExchangeDeclare(
+		dlqName,
+		"fanout",
+		true,
+		false,
+		false,
+		false,
+		nil,
+	)
+
 	// Declare queue
 	q, err := ch.QueueDeclare(
-		queueName, // name
+		mainqName, // name
 		true,      // durable
 		false,     // delete when unused
 		false,     // exclusive

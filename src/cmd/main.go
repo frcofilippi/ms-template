@@ -48,6 +48,8 @@ func main() {
 		appConfig.rabbitmqconfig.connectionStr,
 		appConfig.rabbitmqconfig.exchangeName,
 		appConfig.rabbitmqconfig.queue,
+		"TODO",
+		"TODO",
 	)
 	if err != nil {
 		log.Fatalf("Error creating event publisher: %s", err.Error())
@@ -62,6 +64,8 @@ func main() {
 		appConfig.rabbitmqconfig.connectionStr,
 		appConfig.rabbitmqconfig.exchangeName,
 		appConfig.rabbitmqconfig.queue,
+		"TODO",
+		"TODO",
 	)
 	if err != nil {
 		log.Fatalf("Error creating event consumer: %s", err.Error())
