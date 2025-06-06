@@ -4,16 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
-	"frcofilippi/pedimeapp/internal/events"
+	"frcofilippi/pedimeapp/shared/events"
 	"log"
 	"time"
 )
-
-type OutboxMessage struct {
-	Id        string          `json:"id"`
-	EventType string          `json:"event_type"`
-	Payload   json.RawMessage `json:"payload,omitempty"`
-}
 
 type OutboxRelay struct {
 	rmq       events.EventPublisher
@@ -55,7 +49,7 @@ func (or *OutboxRelay) PublishBatch(ctx context.Context) error {
 	}
 	defer tx.Rollback()
 
-	var messages []OutboxMessage
+	var messages []events.OutboxMessage
 
 	query := `SELECT id, event_type, payload from outbox_messages where processed = false order by 1 asc`
 
@@ -66,7 +60,7 @@ func (or *OutboxRelay) PublishBatch(ctx context.Context) error {
 	}
 
 	for rows.Next() {
-		var msg OutboxMessage
+		var msg events.OutboxMessage
 		err := rows.Scan(&msg.Id, &msg.EventType, &msg.Payload)
 		if err != nil {
 			tx.Rollback()

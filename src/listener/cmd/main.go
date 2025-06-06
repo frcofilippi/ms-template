@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"frcofilippi/pedimeapp/listener/internal"
+	"frcofilippi/pedimeapp/listener/internal/handlers"
 	"frcofilippi/pedimeapp/shared/config"
 	"log"
 	"time"
@@ -12,14 +13,10 @@ import (
 
 func main() {
 
-	// err := godotenv.Load()
-	// if err != nil {
-	// 	log.Fatal("Error loading .env file")
-	// }
-
 	appConfig := config.NewApiConfiguration()
 
-	hanlder := &internal.CustomMessageHandler{}
+	// hanlder := &internal.CustomMessageHandler{}
+	hanlder := &handlers.ProductCreatedHandler{}
 
 	con, err := connectToRabbitMq(appConfig.Rabbitmqconfig.ConnectionStr)
 	if err != nil {

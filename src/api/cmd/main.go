@@ -4,9 +4,9 @@ import (
 	"context"
 	"frcofilippi/pedimeapp/internal/application"
 	"frcofilippi/pedimeapp/internal/common"
-	"frcofilippi/pedimeapp/internal/events"
 	"frcofilippi/pedimeapp/internal/product"
 	"frcofilippi/pedimeapp/shared/config"
+	"frcofilippi/pedimeapp/shared/events"
 	"log"
 	"net/http"
 )

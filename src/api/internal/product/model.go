@@ -2,7 +2,8 @@ package product
 
 import (
 	"errors"
-	"frcofilippi/pedimeapp/internal/events"
+	"frcofilippi/pedimeapp/shared/events"
+	product_events "frcofilippi/pedimeapp/shared/events/product"
 	"strings"
 	"time"
 )
@@ -27,7 +28,7 @@ func (p *Product) RaiseEvent(event events.DomainEvent) {
 
 func (p *Product) PendingEvents() []events.DomainEvent {
 	for _, evt := range p.events {
-		prodCreatedEvt := evt.(*events.ProductCreatedEvent)
+		prodCreatedEvt := evt.(*product_events.ProductCreatedEvent)
 		prodCreatedEvt.ProductId = p.Id
 	}
 	return p.events
@@ -51,7 +52,7 @@ func NewProduct(id, customer int64, name string, cost float64) (*Product, error)
 		Cost:       cost,
 	}
 
-	productCreatedEvent := &events.ProductCreatedEvent{
+	productCreatedEvent := &product_events.ProductCreatedEvent{
 		ProductId: product.Id,
 		Cost:      product.Cost,
 		Time:      time.Now(),

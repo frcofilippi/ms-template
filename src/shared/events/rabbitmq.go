@@ -3,7 +3,7 @@ package events
 import (
 	"fmt"
 
-	"github.com/streadway/amqp"
+	amqp "github.com/rabbitmq/amqp091-go"
 )
 
 type RabbitMQ struct {

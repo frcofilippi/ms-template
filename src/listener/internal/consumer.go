@@ -4,6 +4,7 @@ import (
 	"context"
 	"encoding/json"
 	"frcofilippi/pedimeapp/shared/config"
+	"frcofilippi/pedimeapp/shared/events"
 	"log"
 
 	amqp "github.com/rabbitmq/amqp091-go"
@@ -33,7 +34,7 @@ func (c *Consumer) ListenForMessages(ctx context.Context) error {
 			return ctx.Err()
 		default:
 			for msg := range messageChan {
-				var parsedMessage QueueMessage
+				var parsedMessage events.OutboxMessage
 				body := msg.Body
 				err := json.Unmarshal(body, &parsedMessage)
 				if err != nil {
@@ -42,8 +43,8 @@ func (c *Consumer) ListenForMessages(ctx context.Context) error {
 				}
 				log.Default().Printf(
 					"[Consumer] - Message received. Id: %d Type: %s \n",
-					parsedMessage.MessageId,
-					parsedMessage.MessageType,
+					parsedMessage.Id,
+					parsedMessage.EventType,
 				)
 				errCh := make(chan error)
 				go c.messageHandler.Handle(parsedMessage, errCh)
@@ -80,10 +81,6 @@ func (c *Consumer) setup(exchangeName, dlExchangeName, dlQueueName string) error
 	if err != nil {
 		return err
 	}
-	// mainQueueName := os.Getenv("RMQ_MAIN_QUEUE")
-	// exchangeName := os.Getenv("RMQ_EXCHANGE")
-	// dlExchangeName := os.Getenv("RMQ_DL_EXCHANGE")
-	// dlQueueName := os.Getenv("RMQ_DL_QUEUE")
 
 	err = ch.ExchangeDeclare(
 		exchangeName,

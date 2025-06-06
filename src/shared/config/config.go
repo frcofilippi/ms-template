@@ -1,10 +1,7 @@
 package config
 
 import (
-	"log"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 type RabbitMQConfiguration struct {
@@ -21,10 +18,10 @@ type ApiConfiguration struct {
 }
 
 func NewApiConfiguration() *ApiConfiguration {
-	err := godotenv.Load()
-	if err != nil {
-		log.Fatal("Error loading .env file")
-	}
+	// err := godotenv.Load("../../.env")
+	// if err != nil {
+	// 	log.Fatal("Error loading .env file")
+	// }
 
 	return &ApiConfiguration{
 		Port:           readEnvValueAsString("APP_PORT", ":2020"),

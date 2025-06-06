@@ -2,19 +2,19 @@ package internal
 
 import (
 	"context"
-	"encoding/json"
+	"frcofilippi/pedimeapp/shared/events"
 )
 
-type QueueMessage struct {
-	MessageId   int64           `json:"message_id"`
-	MessageType string          `json:"message_type"`
-	Data        json.RawMessage `json:"data"`
-}
+// type OutboxMessage struct {
+// 	Id          int64           `json:"id"`
+// 	MessageType string          `json:"event_type"`
+// 	Payload     json.RawMessage `json:"payload"`
+// }
 
 type Listener interface {
 	ListenForMessages(ctx context.Context) error
 }
 
 type MessageHanlder interface {
-	Handle(QueueMessage, chan<- error)
+	Handle(events.OutboxMessage, chan<- error)
 }

@@ -1,6 +1,8 @@
-package events
+package product
 
-import "time"
+import (
+	"time"
+)
 
 type ProductCreatedEvent struct {
 	ProductId int64     `json:"product_id"`
@@ -8,10 +10,10 @@ type ProductCreatedEvent struct {
 	Time      time.Time `json:"created_at"`
 }
 
-const EventName = "ProductCreated"
+const EventType = "ProductCreated"
 
 func (pc *ProductCreatedEvent) EventType() string {
-	return EventName
+	return EventType
 }
 
 func (pc *ProductCreatedEvent) OccurredAt() time.Time {
