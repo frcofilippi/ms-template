@@ -1,0 +1,52 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+
+scrape_configs:
+  # API Service logs
+  - job_name: api-service
+    static_configs:
+      - targets:
+          - localhost
+        labels:
+          job: api
+          service: api-service
+          __path__: /var/lib/docker/containers/*/*log
+    pipeline_stages:
+      - docker: {}  # Extract the log line from docker format
+      - json:
+          expressions:
+            level: level
+            ts: ts
+            caller: caller
+            msg: msg
+            service: service
+            protocol: protocol
+            method: method
+            path: path
+            request_id: request_id
+            status: status
+            duration: duration
+            event_type: event_type
+      - labels:
+          service:
+          msg:
+          protocol:
+          level:
+          method:
+          path:
+          event_type:
+      - metrics:
+          http_request_duration_seconds:
+              type: Histogram
+              prefix: app_
+              source: duration
+              config:
+                  buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5]

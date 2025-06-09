@@ -13,6 +13,11 @@ services:
     volumes:
       - "./db-data:/var/lib/postgresql/data"
       - "./init-scripts:/docker-entrypoint-initdb.d"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
 
   rabbitmq:
     image: rabbitmq:3.12-management
@@ -25,3 +30,75 @@ services:
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
     volumes:
       - "./rabbitmq_data:/var/lib/rabbitmq"
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+  loki:
+    image: grafana/loki:2.8.0
+    ports:
+      - "3100:3100"
+    command: -config.file=/etc/loki/local-config.yaml
+    volumes:
+      - ./loki-data:/loki
+  promtail:
+    image: grafana/promtail:2.8.0
+    volumes:
+      - /var/log:/var/log
+      - ./config/promtail.yaml:/etc/promtail/config.yml
+      - /var/lib/docker/containers:/var/lib/docker/containers:ro
+    command: -config.file=/etc/promtail/config.yml
+    depends_on:
+      - loki
+  grafana:
+    image: grafana/grafana:latest
+    ports:
+      - "3000:3000"
+    environment:
+      - GF_AUTH_ANONYMOUS_ENABLED=true
+      - GF_AUTH_ANONYMOUS_ORG_ROLE=Admin
+    volumes:
+      - ./grafana-data:/var/lib/grafana
+    depends_on:
+      - loki
+  api:
+    build:
+      context: ../src
+      dockerfile: api/Dockerfile
+    ports:
+      - "2020:2020"
+    environment:
+      APP_PORT: ":2020"
+      DB_CONNECTION_STR: "postgres://${APP_DB_USER}:${APP_DB_PASSWORD}@db:5432/${APP_DB_NAME}?sslmode=disable"
+      RMQ_CONNECTION_STR: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/"
+      RMQ_EXCHANGE: "pedimeapp_exchange"
+      RMQ_DL_QUEUE: "pedimeapp_dl_queue"
+      RMQ_DL_EXCHANGE: "pedimeapp_dl_exchange"
+    depends_on:
+      - db
+      - rabbitmq
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
+
+  listener:
+    build:
+      context: ../src
+      dockerfile: listener/Dockerfile
+    environment:
+      DB_CONNECTION_STR: "postgres://${APP_DB_USER}:${APP_DB_PASSWORD}@db:5432/${APP_DB_NAME}?sslmode=disable"
+      RMQ_CONNECTION_STR: "amqp://${RABBITMQ_DEFAULT_USER}:${RABBITMQ_DEFAULT_PASS}@rabbitmq:5672/"
+      RMQ_EXCHANGE: "pedimeapp_exchange"
+      RMQ_DL_QUEUE: "pedimeapp_dl_queue"
+      RMQ_DL_EXCHANGE: "pedimeapp_dl_exchange"
+    depends_on:
+      - db
+      - rabbitmq
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "200k"
+        max-file: "10"
