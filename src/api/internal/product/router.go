@@ -68,7 +68,7 @@ func (ph *ProductRouter) HandleCreateProduct(w http.ResponseWriter, r *http.Requ
 	command := &CreateNewProductCommand{
 		Name:       request.Name,
 		Cost:       request.Cost,
-		CustomerId: 1,
+		CustomerId: 2,
 	}
 
 	id, err := ph.productService.CreateNewProduct(*command)

@@ -1,0 +1,22 @@
+
+@environmentUrl = localhost:2020
+@baseUrl = http://{{environmentUrl}}/api/v1
+
+###
+# @name CreateProductRequest
+# @prompt productName
+# @prompt cost
+POST {{baseUrl}}/product
+Content-type: application/json
+Accept: application/json
+
+{
+	"name": "{{productName}}",
+	"cost": {{cost}}
+}
+
+###
+# @name GetProductById
+GET {{baseUrl}}/product/114
+Accept: application/json
+

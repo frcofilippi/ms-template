@@ -5,4 +5,5 @@ use (
 	./listener
 	./shared/config
 	./shared/events
+	./shared/logger
 )

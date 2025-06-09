@@ -5,36 +5,40 @@ import (
 	"frcofilippi/pedimeapp/listener/internal"
 	"frcofilippi/pedimeapp/listener/internal/handlers"
 	"frcofilippi/pedimeapp/shared/config"
-	"log"
+	"frcofilippi/pedimeapp/shared/logger"
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.uber.org/zap"
 )
 
 func main() {
 
+	listener_logger := logger.InitLogger("listener-service")
+	defer listener_logger.Sync()
+
 	appConfig := config.NewApiConfiguration()
 
-	// hanlder := &internal.CustomMessageHandler{}
 	hanlder := &handlers.ProductCreatedHandler{}
 
 	con, err := connectToRabbitMq(appConfig.Rabbitmqconfig.ConnectionStr)
 	if err != nil {
-		panic(err)
+		listener_logger.Panic("rabbitmq error", zap.String("error", err.Error()))
 	}
 	defer con.Close()
 
 	consumer, err := internal.NewConsumer(con, *appConfig.Rabbitmqconfig, hanlder)
 	if err != nil {
-		panic(err)
+		listener_logger.Panic("consumer error", zap.String("error", err.Error()))
 	}
 
 	err = consumer.ListenForMessages(context.Background())
 	if err != nil {
-		panic(err)
+		listener_logger.Panic("listener error", zap.String("error", err.Error()))
 	}
 
-	log.Default().Printf("[Main] - Listening for messages")
+	// log.Default().Printf("[Main] - Listening for messages")
+	listener_logger.Info("Listening for messages from broker")
 }
 
 func connectToRabbitMq(conStr string) (*amqp.Connection, error) {
@@ -53,7 +57,13 @@ func connectToRabbitMq(conStr string) (*amqp.Connection, error) {
 		if err == nil {
 			return con, nil
 		}
-		log.Printf("Failed to connect to RabbitMQ (attempt %d/%d): %v", attempt, maxAttempts, err)
+		logger.Error(
+			"error connecting RabbitMQ",
+			zap.Int("attempt", attempt),
+			zap.Int("max_attempts", maxAttempts),
+			zap.String("error", err.Error()),
+		)
+
 		if attempt < maxAttempts {
 			time.Sleep(backoff)
 			backoff *= 2

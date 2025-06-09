@@ -20,7 +20,8 @@ func (app *Application) Mount() *chi.Mux {
 	mux := chi.NewMux()
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.RealIP)
-	mux.Use(middleware.Logger)
+	// mux.Use(middleware.Logger)
+	mux.Use(ZapLogger)
 	mux.Use(middleware.Recoverer)
 
 	mux.Use(cors.Handler(cors.Options{
