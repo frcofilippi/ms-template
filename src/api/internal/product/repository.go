@@ -13,7 +13,7 @@ type PgProductRepository struct {
 	db *sql.DB
 }
 
-func (pr *PgProductRepository) GetById(ctx context.Context, exec DBExecutor, id, customerId int64) (*Product, error) {
+func (pr *PgProductRepository) GetById(ctx context.Context, exec DBExecutor, id int64, userId string) (*Product, error) {
 	query := `SELECT * FROM products p WHERE p.id = $1;`
 
 	ctx, cancel := context.WithTimeout(ctx, time.Second*4)
@@ -23,7 +23,7 @@ func (pr *PgProductRepository) GetById(ctx context.Context, exec DBExecutor, id,
 
 	var product Product
 
-	err := row.Scan(&product.Id, &product.CustomerId, &product.Name, &product.Cost)
+	err := row.Scan(&product.Id, &product.UserId, &product.Name, &product.Cost)
 
 	if err != nil {
 		return nil, err
@@ -32,8 +32,8 @@ func (pr *PgProductRepository) GetById(ctx context.Context, exec DBExecutor, id,
 }
 
 func (pr *PgProductRepository) Create(ctx context.Context, exec DBExecutor, product *Product) (int64, error) {
-	query := "INSERT INTO products (customer_id, name, cost) VALUES ($1, $2, $3) RETURNING id"
-	row := exec.QueryRowContext(ctx, query, product.CustomerId, product.Name, product.Cost)
+	query := "INSERT INTO products (user_id, name, cost) VALUES ($1, $2, $3) RETURNING id"
+	row := exec.QueryRowContext(ctx, query, product.UserId, product.Name, product.Cost)
 	var id int64
 	err := row.Scan(&id)
 	if err != nil {

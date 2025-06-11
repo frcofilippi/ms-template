@@ -13,11 +13,11 @@ const (
 )
 
 type Product struct {
-	Id         int64
-	CustomerId int64
-	Name       string
-	Cost       float64
-	events     []events.DomainEvent
+	Id     int64
+	UserId string
+	Name   string
+	Cost   float64
+	events []events.DomainEvent
 }
 
 //TODO: decide whether to create a productId or to use the sequence
@@ -38,18 +38,18 @@ func (p *Product) CleanEvents() {
 	p.events = make([]events.DomainEvent, 0)
 }
 
-func NewProduct(id, customer int64, name string, cost float64) (*Product, error) {
+func NewProduct(id int64, userId string, name string, cost float64) (*Product, error) {
 	if name == "" || cost == 0 {
 		return nil, errors.New(validationError)
 	}
-	if customer == 0 {
-		return nil, errors.New("customer must be set before creating a product")
+	if userId == "" {
+		return nil, errors.New("user must be set before creating a product")
 	}
 	product := &Product{
-		Id:         id,
-		CustomerId: customer,
-		Name:       strings.ToUpper(name),
-		Cost:       cost,
+		Id:     id,
+		UserId: userId,
+		Name:   strings.ToUpper(name),
+		Cost:   cost,
 	}
 
 	productCreatedEvent := &product_events.ProductCreatedEvent{

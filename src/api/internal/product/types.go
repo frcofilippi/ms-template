@@ -10,7 +10,7 @@ type CreateProductRequest struct {
 	Cost float64 `json:"cost"`
 }
 
-type WithCustomerProductRepository struct {
+type WithUserProductRepository struct {
 	innerRepo *PgProductRepository
 	db        *sql.DB
 }
@@ -26,17 +26,17 @@ type ProductService interface {
 }
 
 type GetProductByIdCommand struct {
-	ProductId  int64
-	CustomerId int64
+	ProductId int64
+	UserId    string
 }
 
 type CreateNewProductCommand struct {
-	Name       string
-	Cost       float64
-	CustomerId int64
+	Name   string
+	Cost   float64
+	UserId string
 }
 
 type ProductRepository interface {
-	GetById(context.Context, int64, int64) (*Product, error)
+	GetById(context.Context, int64, string) (*Product, error)
 	Create(context.Context, *Product) (int64, error)
 }

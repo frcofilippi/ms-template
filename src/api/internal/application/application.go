@@ -18,6 +18,7 @@ type Application struct {
 
 func (app *Application) Mount() *chi.Mux {
 	mux := chi.NewMux()
+	mux.Use(EnsureValidToken)
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.RealIP)
 	// mux.Use(middleware.Logger)
