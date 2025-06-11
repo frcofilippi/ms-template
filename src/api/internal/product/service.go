@@ -14,7 +14,7 @@ func (ps *ApplicationProductService) GetProductById(cmd GetProductByIdCommand) (
 		return nil, errors.New("id must be provided to find the product")
 	}
 
-	prod, err := ps.repository.GetById(context.Background(), cmd.ProductId, cmd.CustomerId)
+	prod, err := ps.repository.GetById(context.Background(), cmd.ProductId, cmd.UserId)
 	if err != nil {
 		return nil, err
 	}
@@ -22,11 +22,11 @@ func (ps *ApplicationProductService) GetProductById(cmd GetProductByIdCommand) (
 }
 
 func (ps *ApplicationProductService) CreateNewProduct(cmd CreateNewProductCommand) (int64, error) {
-	if cmd.CustomerId == 0 {
+	if cmd.UserId == "" {
 		return 0, errors.New("customer id must be set to create a product")
 	}
 
-	prod, err := NewProduct(0, cmd.CustomerId, cmd.Name, cmd.Cost)
+	prod, err := NewProduct(0, cmd.UserId, cmd.Name, cmd.Cost)
 
 	if err != nil {
 		return 0, err

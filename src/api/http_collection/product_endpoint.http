@@ -1,6 +1,6 @@
-
 @environmentUrl = localhost:2020
 @baseUrl = http://{{environmentUrl}}/api/v1
+@token = ***REMOVED***
 
 ###
 # @name CreateProductRequest
@@ -9,6 +9,7 @@
 POST {{baseUrl}}/product
 Content-type: application/json
 Accept: application/json
+Authorization: Bearer {{token}}
 
 {
 	"name": "{{productName}}",
@@ -19,4 +20,5 @@ Accept: application/json
 # @name GetProductById
 GET {{baseUrl}}/product/114
 Accept: application/json
+Authorization: Bearer {{Auth0Login.response.body.access_token}}
 

@@ -75,6 +75,8 @@ services:
       RMQ_EXCHANGE: "pedimeapp_exchange"
       RMQ_DL_QUEUE: "pedimeapp_dl_queue"
       RMQ_DL_EXCHANGE: "pedimeapp_dl_exchange"
+      AUTH0_DOMAIN: ${AUTH0_DOMAIN}
+      AUTH0_AUDIENCE: ${AUTH0_AUDIENCE}
     depends_on:
       - db
       - rabbitmq

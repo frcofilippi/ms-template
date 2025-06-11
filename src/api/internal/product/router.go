@@ -2,12 +2,18 @@ package product
 
 import (
 	"encoding/json"
+	"fmt"
+	"frcofilippi/pedimeapp/internal/application"
+	"frcofilippi/pedimeapp/shared/logger"
 	"log"
 	"net/http"
 	"strconv"
 
+	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
+	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	"go.uber.org/zap"
 )
 
 type ProductRouter struct {
@@ -30,11 +36,16 @@ func (ph *ProductRouter) HandleGetProduct(w http.ResponseWriter, r *http.Request
 		return
 	}
 
-	//TODO: Parse the customerid from the jsonweb token
+	userId, err := GetUserIdFromRequest(r)
+	if err != nil {
+		logger.GetLogger().Error("error parsing user from context", zap.String("handler", "handleGetProduct"))
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
 
 	command := &GetProductByIdCommand{
-		ProductId:  id,
-		CustomerId: 2,
+		ProductId: id,
+		UserId:    userId,
 	}
 
 	result, err := ph.productService.GetProductById(*command)
@@ -54,9 +65,17 @@ func (ph *ProductRouter) HandleGetProduct(w http.ResponseWriter, r *http.Request
 
 func (ph *ProductRouter) HandleCreateProduct(w http.ResponseWriter, r *http.Request) {
 	requestId, _ := r.Context().Value(middleware.RequestIDKey).(string)
+
+	userID, err := GetUserIdFromRequest(r)
+	if err != nil {
+		logger.GetLogger().Error("error parsing user from context", zap.String("handler", "handleCreateProduct"))
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+
 	var request CreateProductRequest
 
-	err := json.NewDecoder(r.Body).Decode(&request)
+	err = json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
 		w.Write([]byte("Not able to parse your request"))
@@ -66,9 +85,9 @@ func (ph *ProductRouter) HandleCreateProduct(w http.ResponseWriter, r *http.Requ
 	log.Default().Printf("[%s] With values: %v \n", requestId, request)
 
 	command := &CreateNewProductCommand{
-		Name:       request.Name,
-		Cost:       request.Cost,
-		CustomerId: 2,
+		Name:   request.Name,
+		Cost:   request.Cost,
+		UserId: userID,
 	}
 
 	id, err := ph.productService.CreateNewProduct(*command)
@@ -82,6 +101,19 @@ func (ph *ProductRouter) HandleCreateProduct(w http.ResponseWriter, r *http.Requ
 	result := strconv.FormatInt(id, 10)
 	w.Write([]byte(result))
 	log.Default().Printf("[%s]Successfully processed. Url: %s", requestId, r.URL.String())
+}
+
+func GetUserIdFromRequest(r *http.Request) (string, error) {
+	token, ok := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+	if !ok || token == nil {
+		return "", fmt.Errorf("invalid token. Not able to get user")
+	}
+	customClaims, ok := token.CustomClaims.(*application.CustomClaims)
+	if !ok || customClaims == nil {
+		return "", fmt.Errorf("not able to parse custom claims")
+	}
+	userID := customClaims.Sub
+	return userID, nil
 }
 
 func (ph *ProductRouter) Routes() http.Handler {

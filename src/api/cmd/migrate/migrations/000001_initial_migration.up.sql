@@ -10,7 +10,7 @@ CREATE TABLE
 
 create table if not exists products (
 	id serial primary key,
-	customer_id int not null,
+	user_id varchar(250) not null,
 	name varchar(250) not null,
 	cost float not null
 );
@@ -30,7 +30,7 @@ alter table products enable row level security;
 
 create policy customer_isolation_policy on products
 for all
-using (customer_id = current_setting('app.customer_id')::int);
+using (user_id = current_setting('app.user_id')::text);
 
 GRANT USAGE ON SCHEMA public TO pedimeapp;
 GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO pedimeapp;

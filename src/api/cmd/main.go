@@ -28,7 +28,7 @@ func main() {
 		)
 	}
 
-	productRepository, err := product.NewProductRepositoryWithCustomer(sqlConnection)
+	productRepository, err := product.NewProductRepositoryWithUser(sqlConnection)
 	if err != nil {
 		apilogger.Fatal(
 			"Something went wrong when initializing the repository",

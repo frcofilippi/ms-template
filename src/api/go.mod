@@ -1,6 +1,6 @@
 module frcofilippi/pedimeapp
 
-go 1.22.2
+go 1.24.4
 
 require (
 	github.com/go-chi/chi/v5 v5.2.1
@@ -11,6 +11,7 @@ require (
 )
 
 require (
+	github.com/auth0/go-jwt-middleware/v2 v2.3.0
 	go.uber.org/multierr v1.11.0 // indirect
 	go.uber.org/zap v1.27.0 // indirect
 )
