@@ -1,6 +1,5 @@
 @environmentUrl = localhost:2020
 @baseUrl = http://{{environmentUrl}}/api/v1
-@token = ***REMOVED***
 
 ###
 # @name CreateProductRequest
