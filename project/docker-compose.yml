@@ -23,8 +23,8 @@ services:
     image: rabbitmq:3.12-management
     container_name: rabbitmq
     ports:
-      - "5672:5672"     # AMQP (used by applications)
-      - "15672:15672"   # HTTP UI (used by humans)
+      - "5672:5672"     
+      - "15672:15672"  
     environment:
       RABBITMQ_DEFAULT_USER: ${RABBITMQ_DEFAULT_USER}
       RABBITMQ_DEFAULT_PASS: ${RABBITMQ_DEFAULT_PASS}
