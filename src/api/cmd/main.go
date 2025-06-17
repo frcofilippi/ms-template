@@ -19,6 +19,7 @@ func main() {
 	defer apilogger.Sync()
 
 	appConfig := config.NewApiConfiguration()
+
 	sqlConnection, err := common.NewPostgresConnection(appConfig.Dbconfig.ConnectionStr)
 	if err != nil {
 		apilogger.Fatal(
@@ -59,21 +60,22 @@ func main() {
 		zap.String("port", appConfig.Port),
 	)
 
-	eventPublisher, err := events.NewRabbitMqConnection(
-		appConfig.Rabbitmqconfig.ConnectionStr,
-		appConfig.Rabbitmqconfig.ExchangeName,
-	)
-
+	clientCfg := events.RabbitMQConfig{
+		URL:        appConfig.Rabbitmqconfig.ConnectionStr,
+		Exchange:   appConfig.Rabbitmqconfig.ExchangeName,
+		DLExchange: appConfig.Rabbitmqconfig.DLExchange,
+		DLQueue:    appConfig.Rabbitmqconfig.DLQueue,
+	}
+	eventClient, err := events.NewRabbitMQClient(clientCfg)
 	if err != nil {
 		apilogger.Fatal(
 			"error initializing event publisher",
 			zap.String("error", err.Error()),
 		)
 	}
+	defer eventClient.Close()
 
-	defer eventPublisher.Close()
-
-	obrelay := application.NewOutboxRelay(sqlConnection, eventPublisher)
+	obrelay := application.NewOutboxRelay(sqlConnection, eventClient)
 
 	obrelay.Start(context.Background())
 

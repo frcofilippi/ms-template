@@ -71,7 +71,7 @@ func (or *OutboxRelay) PublishBatch(ctx context.Context) error {
 
 	for _, message := range messages {
 		body, _ := json.Marshal(message)
-		err = or.rmq.Publish("", body)
+		err = or.rmq.Publish(ctx, "", body)
 		if err != nil {
 			tx.Rollback()
 			return err

@@ -21,7 +21,6 @@ func (app *Application) Mount() *chi.Mux {
 	mux.Use(EnsureValidToken)
 	mux.Use(middleware.RequestID)
 	mux.Use(middleware.RealIP)
-	// mux.Use(middleware.Logger)
 	mux.Use(ZapLogger)
 	mux.Use(middleware.Recoverer)
 
