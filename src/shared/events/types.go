@@ -19,9 +19,9 @@ type RabbitMQConfig struct {
 	DLQueue    string
 }
 
-type HandlerFunc func(ctx context.Context, msg OutboxMessage) error
+type EventHandlerFunc func(ctx context.Context, msg OutboxMessage) error
 
-type Dispatcher map[string]HandlerFunc
+type Dispatcher map[string]EventHandlerFunc
 
 type EventPublisher interface {
 	Publish(ctx context.Context, routingKey string, body []byte) error

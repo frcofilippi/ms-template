@@ -5,6 +5,7 @@ import (
 	"frcofilippi/pedimeapp/listener/internal/handlers"
 	"frcofilippi/pedimeapp/shared/config"
 	"frcofilippi/pedimeapp/shared/events"
+	"frcofilippi/pedimeapp/shared/events/product"
 	"frcofilippi/pedimeapp/shared/logger"
 
 	"go.uber.org/zap"
@@ -16,11 +17,10 @@ func main() {
 
 	appConfig := config.NewApiConfiguration()
 
+	productCreatedHandler := handlers.NewProductCreatedEventHandler(product.ProductCreatedEventName)
+
 	dispatcher := events.Dispatcher{
-		"ProductCreated": func(ctx context.Context, msg events.OutboxMessage) error {
-			h := handlers.ProductCreatedHandler{}
-			return h.HandleContext(ctx, msg)
-		},
+		productCreatedHandler.HandledEvent: productCreatedHandler.HandleContext,
 	}
 
 	clientCfg := events.RabbitMQConfig{

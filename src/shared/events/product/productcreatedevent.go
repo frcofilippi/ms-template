@@ -10,10 +10,10 @@ type ProductCreatedEvent struct {
 	Time      time.Time `json:"created_at"`
 }
 
-const EventType = "ProductCreated"
+const ProductCreatedEventName = "ProductCreated"
 
 func (pc *ProductCreatedEvent) EventType() string {
-	return EventType
+	return ProductCreatedEventName
 }
 
 func (pc *ProductCreatedEvent) OccurredAt() time.Time {
