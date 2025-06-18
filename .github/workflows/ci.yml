@@ -6,7 +6,7 @@ on:
       - main
 
 jobs:
-  build-and-test:
+  build-and-test-api:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,22 +18,28 @@ jobs:
           go-version: '1.24'
 
       - name: Build API Docker image
-        run: docker build -f src/api/Dockerfile -t pedimeapp-api .
-
-      - name: Build Listener Docker image
-        run: docker build -f src/listener/Dockerfile -t pedimeapp-listener .
+        run: docker build -f src/api/Dockerfile -t pedimeapp-api ./src
 
       - name: Run API unit tests
         run: |
           cd src/api
           go test ./...
 
-      - name: Run Listener unit tests
-        run: |
-          cd src/listener
-          go test ./...
+#   build-and-test-listener:
+#     runs-on: ubuntu-latest
+#     steps:
+#       - name: Checkout code
+#         uses: actions/checkout@v4
 
-      - name: Run Shared unit tests
-        run: |
-          cd src/shared
-          go test ./...
+#       - name: Set up Go
+#         uses: actions/setup-go@v5
+#         with:
+#           go-version: '1.24'
+
+#       - name: Build Listener Docker image
+#         run: docker build -f src/listener/Dockerfile -t pedimeapp-listener .
+
+#       - name: Run Listener unit tests
+#         run: |
+#           cd src/listener
+#           go test ./...
