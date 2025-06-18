@@ -6,4 +6,5 @@ use (
 	./shared/config
 	./shared/events
 	./shared/logger
+	./shared/utils
 )

@@ -2,18 +2,16 @@ package product
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"frcofilippi/pedimeapp/internal/application"
-	"frcofilippi/pedimeapp/shared/logger"
-	"log"
+	"frcofilippi/pedimeapp/shared/utils"
 	"net/http"
 	"strconv"
 
 	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
 	"github.com/auth0/go-jwt-middleware/v2/validator"
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"go.uber.org/zap"
 )
 
 type ProductRouter struct {
@@ -21,25 +19,23 @@ type ProductRouter struct {
 }
 
 func (ph *ProductRouter) HandleGetProduct(w http.ResponseWriter, r *http.Request) {
-	requestId, _ := r.Context().Value(middleware.RequestIDKey).(string)
 	prodId := chi.URLParam(r, "product-id")
+
 	if prodId == "" {
-		log.Default().Printf("[%s]ProdId not received. Url: %s", requestId, r.URL.String())
-		w.WriteHeader(http.StatusBadRequest)
+		utils.SendErrorResponse(w, r, http.StatusBadRequest, "productId parameter is empty", nil)
 		return
 	}
 
 	id, err := strconv.ParseInt(prodId, 0, 64)
 
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		utils.SendErrorResponse(w, r, http.StatusBadRequest, "invalid productId", err)
 		return
 	}
 
 	userId, err := GetUserIdFromRequest(r)
 	if err != nil {
-		logger.GetLogger().Error("error parsing user from context", zap.String("handler", "handleGetProduct"))
-		w.WriteHeader(http.StatusUnauthorized)
+		utils.SendErrorResponse(w, r, http.StatusUnauthorized, "not authorized to see product information", err)
 		return
 	}
 
@@ -51,25 +47,24 @@ func (ph *ProductRouter) HandleGetProduct(w http.ResponseWriter, r *http.Request
 	result, err := ph.productService.GetProductById(*command)
 
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		utils.SendErrorResponse(w, r, http.StatusInternalServerError, "error processing your request", err)
 		return
 	}
-	jresult, _ := json.MarshalIndent(result, "", "  ")
 
-	w.Write([]byte(jresult))
+	if result == nil {
+		utils.SendApiResponse(w, r, http.StatusNotFound, "product not found", nil)
+		return
+	}
 
-	w.WriteHeader(http.StatusOK)
-	log.Default().Printf("[%s]Successfully processed. Url: %s", requestId, r.URL.String())
+	utils.SendApiResponse(w, r, http.StatusOK, "product found", result)
+
 }
 
 func (ph *ProductRouter) HandleCreateProduct(w http.ResponseWriter, r *http.Request) {
-	requestId, _ := r.Context().Value(middleware.RequestIDKey).(string)
 
 	userID, err := GetUserIdFromRequest(r)
 	if err != nil {
-		logger.GetLogger().Error("error parsing user from context", zap.String("handler", "handleCreateProduct"))
-		w.WriteHeader(http.StatusUnauthorized)
+		utils.SendErrorResponse(w, r, http.StatusUnauthorized, "not authorized to perform the operation", errors.New("Missing UserId."))
 		return
 	}
 
@@ -77,12 +72,9 @@ func (ph *ProductRouter) HandleCreateProduct(w http.ResponseWriter, r *http.Requ
 
 	err = json.NewDecoder(r.Body).Decode(&request)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte("Not able to parse your request"))
+		utils.SendErrorResponse(w, r, http.StatusBadRequest, "not able to parse the request", err)
 		return
 	}
-
-	log.Default().Printf("[%s] With values: %v \n", requestId, request)
 
 	command := &CreateNewProductCommand{
 		Name:   request.Name,
@@ -92,15 +84,11 @@ func (ph *ProductRouter) HandleCreateProduct(w http.ResponseWriter, r *http.Requ
 
 	id, err := ph.productService.CreateNewProduct(*command)
 	if err != nil {
-		w.WriteHeader(http.StatusBadRequest)
-		w.Write([]byte(err.Error()))
+		utils.SendErrorResponse(w, r, http.StatusBadRequest, err.Error(), err)
 		return
 	}
 
-	w.WriteHeader(http.StatusCreated)
-	result := strconv.FormatInt(id, 10)
-	w.Write([]byte(result))
-	log.Default().Printf("[%s]Successfully processed. Url: %s", requestId, r.URL.String())
+	utils.SendApiResponse(w, r, http.StatusCreated, "prduct created", id)
 }
 
 func GetUserIdFromRequest(r *http.Request) (string, error) {

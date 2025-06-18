@@ -10,14 +10,13 @@ clients:
 
 
 scrape_configs:
-  # API Service logs
-  - job_name: api-service
+  # API and Listener Service logs
+  - job_name: pedimeapp-services
     static_configs:
       - targets:
-          - localhost
+          - []
         labels:
-          job: api
-          service: api-service
+          job: pedimeapp
           __path__: /var/lib/docker/containers/*/*log
     pipeline_stages:
       - docker: {}  # Extract the log line from docker format
@@ -26,6 +25,7 @@ scrape_configs:
             level: level
             ts: ts
             caller: caller
+            isError: isError
             msg: msg
             service: service
             protocol: protocol
@@ -50,3 +50,7 @@ scrape_configs:
               source: duration
               config:
                   buckets: [0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1, 5]
+    relabel_configs:
+      - source_labels: [__meta_docker_container_name]
+        regex: '/(api|listener)'
+        action: keep
