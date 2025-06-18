@@ -18,10 +18,10 @@ jobs:
           go-version: '1.24'
 
       - name: Build API Docker image
-        run: docker build -t pedimeapp-api ./src/api
+        run: docker build -f src/api/Dockerfile -t pedimeapp-api .
 
       - name: Build Listener Docker image
-        run: docker build -t pedimeapp-listener ./src/listener
+        run: docker build -f src/listener/Dockerfile -t pedimeapp-listener .
 
       - name: Run API unit tests
         run: |
