@@ -132,7 +132,7 @@ func (r *RabbitMQClient) Listen(ctx context.Context, dispatcher Dispatcher) erro
 				msg.Nack(false, false)
 				continue
 			}
-			logger.Info("message received", zap.String("messageType", outboxMsg.EventType))
+			logger.Debug("message received", zap.String("messageType", outboxMsg.EventType))
 			handler, found := dispatcher[outboxMsg.EventType]
 			if !found {
 				msg.Nack(false, false)

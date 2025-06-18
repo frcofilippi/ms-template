@@ -7,7 +7,7 @@ import (
 	"testing"
 )
 
-func TestEnsureValidToken_HappyPath(t *testing.T) {
+func TestEnsureValidToken_Returns401ForInvalidToken(t *testing.T) {
 
 	os.Setenv("AUTH0_DOMAIN", "frappe-dev.us.auth0.com")
 	os.Setenv("AUTH0_AUDIENCE", "pedime-api")
@@ -27,7 +27,7 @@ func TestEnsureValidToken_HappyPath(t *testing.T) {
 	rr := httptest.NewRecorder()
 	wrapped.ServeHTTP(rr, req)
 
-	if rr.Code != http.StatusOK {
-		t.Fatalf("expected status 200, got %d, body: %s", rr.Code, rr.Body.String())
+	if rr.Code != http.StatusUnauthorized {
+		t.Fatalf("expected status 401, got %d, body: %s", rr.Code, rr.Body.String())
 	}
 }

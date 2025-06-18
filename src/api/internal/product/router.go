@@ -21,10 +21,12 @@ type ProductRouter struct {
 }
 
 func (ph *ProductRouter) HandleGetProduct(w http.ResponseWriter, r *http.Request) {
+
 	requestId, _ := r.Context().Value(middleware.RequestIDKey).(string)
 	prodId := chi.URLParam(r, "product-id")
+
 	if prodId == "" {
-		log.Default().Printf("[%s]ProdId not received. Url: %s", requestId, r.URL.String())
+		logger.Error("error parsing product id", zap.String("handler", "handleGetProduct"), zap.String("request_id", requestId))
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
@@ -32,13 +34,14 @@ func (ph *ProductRouter) HandleGetProduct(w http.ResponseWriter, r *http.Request
 	id, err := strconv.ParseInt(prodId, 0, 64)
 
 	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
+		logger.Error("error parsing product id", zap.String("handler", "handleGetProduct"), zap.String("request_id", requestId))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
 	userId, err := GetUserIdFromRequest(r)
 	if err != nil {
-		logger.GetLogger().Error("error parsing user from context", zap.String("handler", "handleGetProduct"))
+		logger.Error("error parsing user from context", zap.String("handler", "handleGetProduct"), zap.String("request_id", requestId))
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -51,16 +54,23 @@ func (ph *ProductRouter) HandleGetProduct(w http.ResponseWriter, r *http.Request
 	result, err := ph.productService.GetProductById(*command)
 
 	if err != nil {
+		logger.Error("error processing the request.", zap.String("error", err.Error()), zap.String("request_id", requestId))
 		w.WriteHeader(http.StatusInternalServerError)
-		w.Write([]byte(err.Error()))
+		w.Write([]byte("there was an error processing your request"))
 		return
 	}
+
+	if result == nil {
+		w.WriteHeader(http.StatusNotFound)
+		return
+	}
+
 	jresult, _ := json.MarshalIndent(result, "", "  ")
 
 	w.Write([]byte(jresult))
-
 	w.WriteHeader(http.StatusOK)
-	log.Default().Printf("[%s]Successfully processed. Url: %s", requestId, r.URL.String())
+
+	logger.Info("request processed succesfully", zap.String("handler", "handleGetProduct"), zap.String("request_id", requestId))
 }
 
 func (ph *ProductRouter) HandleCreateProduct(w http.ResponseWriter, r *http.Request) {
@@ -68,7 +78,7 @@ func (ph *ProductRouter) HandleCreateProduct(w http.ResponseWriter, r *http.Requ
 
 	userID, err := GetUserIdFromRequest(r)
 	if err != nil {
-		logger.GetLogger().Error("error parsing user from context", zap.String("handler", "handleCreateProduct"))
+		logger.GetLogger().Error("error parsing user from context", zap.String("handler", "handleCreateProduct"), zap.String("request_id", requestId))
 		w.WriteHeader(http.StatusUnauthorized)
 		return
 	}
@@ -100,7 +110,7 @@ func (ph *ProductRouter) HandleCreateProduct(w http.ResponseWriter, r *http.Requ
 	w.WriteHeader(http.StatusCreated)
 	result := strconv.FormatInt(id, 10)
 	w.Write([]byte(result))
-	log.Default().Printf("[%s]Successfully processed. Url: %s", requestId, r.URL.String())
+	logger.Info("request processed succesfully", zap.String("handler", "handleCreateProduct"), zap.String("request_id", requestId))
 }
 
 func GetUserIdFromRequest(r *http.Request) (string, error) {
