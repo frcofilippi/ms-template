@@ -25,21 +25,21 @@ jobs:
           cd src/api
           go test ./...
 
-#   build-and-test-listener:
-#     runs-on: ubuntu-latest
-#     steps:
-#       - name: Checkout code
-#         uses: actions/checkout@v4
+  build-and-test-listener:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-#       - name: Set up Go
-#         uses: actions/setup-go@v5
-#         with:
-#           go-version: '1.24'
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.24'
 
-#       - name: Build Listener Docker image
-#         run: docker build -f src/listener/Dockerfile -t pedimeapp-listener .
+      - name: Build Listener Docker image
+        run: docker build -f src/listener/Dockerfile -t pedimeapp-listener ./src
 
-#       - name: Run Listener unit tests
-#         run: |
-#           cd src/listener
-#           go test ./...
+      - name: Run Listener unit tests
+        run: |
+          cd src/listener
+          go test ./...

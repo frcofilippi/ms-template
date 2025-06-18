@@ -1,6 +1,6 @@
 # PedimeApp Microservices Template
 
-![CI](https://github.com/frcofilippi/ms-template/actions/workflows/ci.yml/badge.svg?branch=main)
+Unit tests: ![CI](https://github.com/frcofilippi/ms-template/actions/workflows/ci.yml/badge.svg?branch=main)
 
 This repository is a template for starting a microservices project using Go, RabbitMQ, and PostgreSQL. It includes a simple API service, a listener service, and a RabbitMQ message broker, all orchestrated with Docker Compose.
 
@@ -55,8 +55,8 @@ You can customize these variables in the `project/docker-compose.yml` file or pr
 
 ## TODO
 
-- [ ] Create unit tests
-- [ ] Refactor the RabbitMQ connection
+- [ ] Create more unit tests
+- [ ] Improve loggin for listener
 
 ---
 
